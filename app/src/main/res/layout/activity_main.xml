@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:padding="16dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <EditText
-        android:id="@+id/etTask"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter new task" />
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
     <Button
         android:id="@+id/btnAdd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Task" />
+        android:text="Add Errand" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

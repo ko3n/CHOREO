@@ -5,8 +5,7 @@ import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
+import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 
 class TaskAdapter(
@@ -15,7 +14,12 @@ class TaskAdapter(
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     inner class TaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvTask: TextView = view.findViewById(R.id.tvTask)
+        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
+        val tvDescription: TextView = view.findViewById(R.id.tvDescription)
+        val tvDueDate: TextView = view.findViewById(R.id.tvDueDate)
+        val tvPriority: TextView = view.findViewById(R.id.tvPriority)
+        val tvAssignee: TextView = view.findViewById(R.id.tvAssignee)
+        val tvRecurrence: TextView = view.findViewById(R.id.tvRecurrence)
         val btnEdit: Button = view.findViewById(R.id.btnEdit)
         val btnDelete: Button = view.findViewById(R.id.btnDelete)
     }
@@ -28,7 +32,12 @@ class TaskAdapter(
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         val task = tasks[position]
-        holder.tvTask.text = task.description
+        holder.tvTitle.text = task.title
+        holder.tvDescription.text = task.description
+        holder.tvDueDate.text = "Due: ${task.dueDate ?: "N/A"}"
+        holder.tvPriority.text = "Priority: ${task.priority ?: "N/A"}"
+        holder.tvAssignee.text = "Assignee: ${task.assignee ?: "N/A"}"
+        holder.tvRecurrence.text = if(task.isRecurring) "Recurring: ${task.recurrenceInterval}" else "One-time"
 
         holder.btnDelete.setOnClickListener {
             dbHelper.deleteTask(task.id)
@@ -36,13 +45,29 @@ class TaskAdapter(
         }
         holder.btnEdit.setOnClickListener {
             val context = holder.itemView.context
-            val editText = android.widget.EditText(context)
-            editText.setText(task.description)
+            val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_edit_task, null)
+            // Fill in current values
+            dialogView.findViewById<EditText>(R.id.etTitle).setText(task.title)
+            dialogView.findViewById<EditText>(R.id.etDescription).setText(task.description)
+            dialogView.findViewById<EditText>(R.id.etDueDate).setText(task.dueDate ?: "")
+            dialogView.findViewById<EditText>(R.id.etPriority).setText(task.priority?.toString() ?: "")
+            dialogView.findViewById<EditText>(R.id.etAssignee).setText(task.assignee ?: "")
+            dialogView.findViewById<CheckBox>(R.id.cbRecurring).isChecked = task.isRecurring
+            dialogView.findViewById<EditText>(R.id.etRecurrenceInterval).setText(task.recurrenceInterval ?: "")
+
             AlertDialog.Builder(context)
                 .setTitle("Edit Task")
-                .setView(editText)
+                .setView(dialogView)
                 .setPositiveButton("Save") { _, _ ->
-                    dbHelper.editTask(task.id, editText.text.toString())
+                    val title = dialogView.findViewById<EditText>(R.id.etTitle).text.toString()
+                    val description = dialogView.findViewById<EditText>(R.id.etDescription).text.toString()
+                    val dueDate = dialogView.findViewById<EditText>(R.id.etDueDate).text.toString()
+                    val priorityStr = dialogView.findViewById<EditText>(R.id.etPriority).text.toString()
+                    val priority = priorityStr.toIntOrNull()
+                    val assignee = dialogView.findViewById<EditText>(R.id.etAssignee).text.toString()
+                    val isRecurring = dialogView.findViewById<CheckBox>(R.id.cbRecurring).isChecked
+                    val recurrenceInterval = dialogView.findViewById<EditText>(R.id.etRecurrenceInterval).text.toString()
+                    dbHelper.editTask(task.id, title, description, dueDate, priority, assignee, isRecurring, recurrenceInterval)
                     updateTasks(dbHelper.getAllTasks())
                 }
                 .setNegativeButton("Cancel", null)
